@@ -14,8 +14,7 @@ export function renderSetup(container, navigate) {
 
   let selectedOps = ['+'];
   let selectedRange = 10;
-  let timerOn = false;
-  let timerSecs = 15;
+  let timerSecs = 60;
 
   container.innerHTML = `
     <div class="screen setup-screen">
@@ -47,11 +46,8 @@ export function renderSetup(container, navigate) {
       <div class="section">
         <div class="section-label">Timer</div>
         <div class="timer-row">
-          <button class="pill-toggle" id="timer-toggle">Off</button>
-          <div class="timer-slider" id="timer-slider" style="display:none">
-            <input type="range" min="5" max="30" step="5" value="15" id="timer-val" />
-            <span id="timer-val-out">15s per question</span>
-          </div>
+          <input type="range" min="0" max="180" step="10" value="60" id="timer-val" />
+          <span id="timer-val-out">60s</span>
         </div>
       </div>
 
@@ -77,21 +73,11 @@ export function renderSetup(container, navigate) {
     });
   });
 
-  // Timer toggle
-  const timerToggle = container.querySelector('#timer-toggle');
-  const timerSlider = container.querySelector('#timer-slider');
-  timerToggle.addEventListener('click', () => {
-    timerOn = !timerOn;
-    timerToggle.textContent = timerOn ? 'On' : 'Off';
-    timerToggle.classList.toggle('active', timerOn);
-    timerSlider.style.display = timerOn ? 'flex' : 'none';
-  });
-
   const timerValInput = container.querySelector('#timer-val');
   const timerValOut = container.querySelector('#timer-val-out');
   timerValInput.addEventListener('input', () => {
     timerSecs = +timerValInput.value;
-    timerValOut.textContent = `${timerSecs}s per question`;
+    timerValOut.textContent = timerSecs === 0 ? 'Off' : `${timerSecs}s`;
   });
 
   // Start
@@ -99,7 +85,7 @@ export function renderSetup(container, navigate) {
     navigate('game', {
       ops: selectedOps,
       range: selectedRange,
-      timerSecs: timerOn ? timerSecs : null,
+      timerSecs: timerSecs === 0 ? null : timerSecs,
     });
   });
 }

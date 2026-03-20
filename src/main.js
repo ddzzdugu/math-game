@@ -7,10 +7,9 @@ const app = document.getElementById('app');
 
 export function navigate(screen, data = {}) {
   app.innerHTML = '';
-  const state = new GameState(data);
   if (screen === 'setup') renderSetup(app, navigate);
-  if (screen === 'game')  renderGame(app, navigate, state);
-  if (screen === 'end')   renderEnd(app, navigate, state);
+  if (screen === 'game')  renderGame(app, navigate, new GameState(data));
+  if (screen === 'end')   renderEnd(app, navigate, data);
 }
 
 // Boot into setup screen
