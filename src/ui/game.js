@@ -109,8 +109,11 @@ export function renderGame(container, navigate, state) {
     handleAnswer(v);
   });
 
-  container.querySelector('#ans-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') container.querySelector('#submit-btn').click();
+  document.addEventListener('keydown', function onKey(e) {
+    if (e.key === 'Enter') {
+      if (!gameActive) { document.removeEventListener('keydown', onKey); return; }
+      container.querySelector('#submit-btn').click();
+    }
   });
 
   nextQuestion();
