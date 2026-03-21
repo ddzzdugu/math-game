@@ -27,4 +27,9 @@ export class GameState {
   get accuracy() {
     return this.currentQ === 0 ? 0 : Math.round((this.correct / this.currentQ) * 100);
   }
+  get avgSpeed() {
+    if (this.currentQ === 0) return 0;
+    const total = this.history.reduce((sum, h) => sum + h.timeTaken, 0);
+    return +(total / this.currentQ).toFixed(1);
+  }
 }

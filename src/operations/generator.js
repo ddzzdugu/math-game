@@ -48,10 +48,23 @@ function randInt(max) {
  * @param {number}   range - max value
  * @returns {{ text, answer, hint? }}
  */
-export function generateQuestion(ops, range) {
-  const op = ops[Math.floor(Math.random() * ops.length)];
-  const q = generators[op](range);
-  return { ...q, op };
+/**
+ * Generate a question, optionally weighted by op error rates.
+ * @param {string[]} ops
+ * @param {number}   range
+ * @param {Object}   [weights]  e.g. { '+': 0.3, '*': 0.8 } — higher = picked more often
+ */
+export function generateQuestion(ops, range, weights = null) {
+  let op;
+  if (weights) {
+    const total = ops.reduce((s, o) => s + (weights[o] ?? 1), 0);
+    let r = Math.random() * total;
+    op = ops[ops.length - 1];
+    for (const o of ops) { r -= (weights[o] ?? 1); if (r <= 0) { op = o; break; } }
+  } else {
+    op = ops[Math.floor(Math.random() * ops.length)];
+  }
+  return { ...generators[op](range), op };
 }
 
 /** Returns the list of supported operation symbols */
