@@ -1,173 +1,202 @@
-const COLORS = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6FCF', '#A855F7', '#F97316', '#06B6D4'];
-const EMOJIS = ['⭐', '🌟', '🎉', '✨', '🏆', '🎊', '💫', '🔥'];
+const FIRE_COLORS = [
+  '#ff3300', '#ff6600', '#ffaa00', '#ffee44', '#ffffff',
+  '#4499ff', '#aa44ff', '#ff44aa', '#44ffbb', '#00ccff',
+  '#ff9944', '#aaff44', '#ff4488', '#44aaff', '#cc44ff',
+];
 
 function rand(min, max) { return min + Math.random() * (max - min); }
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pick(arr)       { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// ── Confetti ────────────────────────────────────────────────────────────────
+// ── Rocket ───────────────────────────────────────────────────────────────────
 
-function runConfetti(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+class Rocket {
+  constructor(W, H) {
+    this.x     = rand(W * 0.1, W * 0.9);
+    this.y     = H + 5;
+    this.vx    = rand(-1.2, 1.2);
+    this.vy    = rand(-14, -9);
+    this.color = pick(FIRE_COLORS);
+    this.trail = [];
+  }
 
-  const pieces = Array.from({ length: 160 }, () => ({
-    x: rand(0, W),
-    y: rand(-300, -10),
-    w: rand(7, 14),
-    h: rand(3, 7),
-    color: pick(COLORS),
-    rot: rand(0, Math.PI * 2),
-    rotSpeed: rand(-0.12, 0.12),
-    vx: rand(-2, 2),
-    vy: rand(1.5, 4),
-    alpha: 1,
-  }));
+  /** Returns true while the rocket is still rising. */
+  update() {
+    this.trail.unshift({ x: this.x, y: this.y });
+    if (this.trail.length > 14) this.trail.pop();
+    this.x  += this.vx;
+    this.y  += this.vy;
+    this.vy += 0.25; // gravity
+    return this.vy < 0;
+  }
 
-  // A handful of floating emoji
-  const floaters = Array.from({ length: 12 }, () => ({
-    x: rand(0, W),
-    y: rand(-200, -10),
-    emoji: pick(EMOJIS),
-    size: rand(24, 42),
-    vx: rand(-1, 1),
-    vy: rand(1, 2.5),
-    alpha: 1,
-  }));
+  draw(ctx) {
+    // Golden trail that fades
+    for (let i = 0; i < this.trail.length; i++) {
+      const a = (1 - i / this.trail.length) * 0.85;
+      ctx.globalAlpha = a;
+      ctx.fillStyle   = i < 4 ? '#ffdd44' : '#ff8800';
+      const r = (1 - i / this.trail.length) * 2.5;
+      ctx.beginPath();
+      ctx.arc(this.trail[i].x, this.trail[i].y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Bright white tip
+    ctx.globalAlpha = 1;
+    ctx.fillStyle   = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ── Burst ─────────────────────────────────────────────────────────────────────
+
+function createBurst(x, y) {
+  const color      = pick(FIRE_COLORS);
+  const count      = Math.floor(rand(100, 150));
+  const particles  = [];
+
+  // Main spoke particles — evenly spread for the "star" pattern
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + rand(-0.06, 0.06);
+    const speed = rand(2.5, 9);
+    particles.push({
+      x, y, prevX: x, prevY: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color, alpha: 1, white: false,
+    });
+  }
+
+  // Extra white sparkle particles from center
+  for (let i = 0; i < 35; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = rand(0.5, 6);
+    particles.push({
+      x, y, prevX: x, prevY: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color: '#ffffff', alpha: 1, white: true,
+    });
+  }
+
+  return { x, y, color, particles, flashAlpha: 1.0 };
+}
+
+// ── Fireworks engine ──────────────────────────────────────────────────────────
+
+function runFireworks(canvas) {
+  const ctx     = canvas.getContext('2d');
+  const W       = canvas.width;
+  const H       = canvas.height;
+  const rockets = [];
+  const bursts  = [];
+
+  // Launch rockets over ~4 seconds
+  let launched = 0;
+  const total  = 16;
+
+  function scheduleLaunch() {
+    if (launched < total) {
+      rockets.push(new Rocket(W, H));
+      launched++;
+      setTimeout(scheduleLaunch, rand(180, 500));
+    }
+  }
+  // Fire the first 3 immediately for instant impact
+  rockets.push(new Rocket(W, H));
+  rockets.push(new Rocket(W, H));
+  rockets.push(new Rocket(W, H));
+  launched = 3;
+  setTimeout(scheduleLaunch, 400);
 
   let raf;
+
   function tick() {
     ctx.clearRect(0, 0, W, H);
-    let alive = false;
+    ctx.globalAlpha = 1;
 
-    for (const p of pieces) {
-      p.x += p.vx; p.y += p.vy; p.rot += p.rotSpeed; p.vy += 0.04;
-      if (p.y > H * 0.75) p.alpha -= 0.02;
-      if (p.alpha <= 0) continue;
-      alive = true;
-      ctx.save();
-      ctx.globalAlpha = p.alpha;
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      ctx.restore();
+    let alive = launched < total || rockets.length > 0;
+
+    // ── Rockets ──────────────────────────────────────────────
+    for (let i = rockets.length - 1; i >= 0; i--) {
+      const r = rockets[i];
+      if (!r.update()) {
+        bursts.push(createBurst(r.x, r.y));
+        rockets.splice(i, 1);
+      } else {
+        r.draw(ctx);
+      }
     }
 
-    for (const f of floaters) {
-      f.x += f.vx; f.y += f.vy;
-      if (f.y > H * 0.7) f.alpha -= 0.025;
-      if (f.alpha <= 0) continue;
-      alive = true;
-      ctx.save();
-      ctx.globalAlpha = f.alpha;
-      ctx.font = `${f.size}px serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText(f.emoji, f.x, f.y);
-      ctx.restore();
+    // ── Burst flash ──────────────────────────────────────────
+    for (const b of bursts) {
+      if (b.flashAlpha > 0) {
+        const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 50);
+        grad.addColorStop(0,   '#ffffff');
+        grad.addColorStop(0.3, b.color);
+        grad.addColorStop(1,   'rgba(0,0,0,0)');
+        ctx.globalAlpha = b.flashAlpha * 0.7;
+        ctx.fillStyle   = grad;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 50, 0, Math.PI * 2);
+        ctx.fill();
+        b.flashAlpha -= 0.07;
+      }
     }
 
+    // ── Burst particles — drawn as streak lines ───────────────
+    ctx.lineCap = 'round';
+    for (const b of bursts) {
+      for (const p of b.particles) {
+        if (p.alpha <= 0) continue;
+        alive = true;
+
+        // Save previous position, then move
+        p.prevX  = p.x;
+        p.prevY  = p.y;
+        p.x     += p.vx;
+        p.y     += p.vy;
+        p.vy    += 0.07;  // gravity droops the sparks downward
+        p.vx    *= 0.98;  // slight air resistance
+        p.alpha -= p.white ? 0.018 : 0.012;
+
+        // Draw as a line from previous to current → gives the streak look
+        ctx.globalAlpha = p.alpha;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth   = p.white ? 1 : 1.8;
+        ctx.beginPath();
+        ctx.moveTo(p.prevX, p.prevY);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalAlpha = 1;
     if (alive) raf = requestAnimationFrame(tick);
-    else ctx.clearRect(0, 0, W, H);
   }
+
   tick();
   return () => cancelAnimationFrame(raf);
 }
 
-// ── Fireworks ───────────────────────────────────────────────────────────────
-
-function runFireworks(canvas) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const particles = [];
-
-  function explode(x, y) {
-    const color = pick(COLORS);
-    const count = Math.floor(rand(55, 80));
-    for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count + rand(-0.2, 0.2);
-      const speed = rand(2, 6);
-      particles.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        color, alpha: 1,
-        r: rand(2, 4),
-      });
-    }
-    // Scatter some emojis from the burst
-    for (let i = 0; i < 4; i++) {
-      particles.push({
-        x, y,
-        vx: rand(-3, 3),
-        vy: rand(-5, -1),
-        emoji: pick(EMOJIS),
-        size: rand(22, 36),
-        alpha: 1,
-        r: 0,
-      });
-    }
-  }
-
-  // Schedule bursts
-  const bursts = [
-    [0,    0.35, 0.30],
-    [450,  0.65, 0.25],
-    [900,  0.50, 0.38],
-    [1350, 0.25, 0.28],
-    [1800, 0.75, 0.32],
-    [2300, 0.45, 0.22],
-  ];
-  const timers = bursts.map(([delay, rx, ry]) =>
-    setTimeout(() => explode(W * rx, H * ry), delay)
-  );
-
-  let raf;
-  function tick() {
-    ctx.clearRect(0, 0, W, H);
-    let alive = false;
-
-    for (const p of particles) {
-      p.x += p.vx; p.y += p.vy;
-      p.vy += 0.09; p.vx *= 0.97;
-      p.alpha -= 0.016;
-      if (p.alpha <= 0) continue;
-      alive = true;
-      ctx.save();
-      ctx.globalAlpha = p.alpha;
-      if (p.emoji) {
-        ctx.font = `${p.size}px serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(p.emoji, p.x, p.y);
-      } else {
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-    }
-
-    if (alive || particles.length === 0) raf = requestAnimationFrame(tick);
-  }
-  tick();
-  return () => { timers.forEach(clearTimeout); cancelAnimationFrame(raf); };
-}
-
-// ── Public API ───────────────────────────────────────────────────────────────
+// ── Public API ────────────────────────────────────────────────────────────────
 
 export function launchEffect() {
-  const canvas = document.createElement('canvas');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const canvas        = document.createElement('canvas');
+  canvas.width        = window.innerWidth;
+  canvas.height       = window.innerHeight;
   canvas.style.cssText =
     'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:999';
   document.body.appendChild(canvas);
 
-  const type = Math.random() < 0.5 ? 'fireworks' : 'confetti';
-  const stopAnim = type === 'fireworks' ? runFireworks(canvas) : runConfetti(canvas);
-
-  const cleanup = () => { stopAnim(); canvas.remove(); };
-  const autoStop = setTimeout(cleanup, 4200);
+  const stopAnim = runFireworks(canvas);
+  const cleanup  = () => { stopAnim(); canvas.remove(); };
+  const autoStop = setTimeout(cleanup, 6500);
 
   return () => { clearTimeout(autoStop); cleanup(); };
 }

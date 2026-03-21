@@ -6,9 +6,40 @@ import { getOpWeights, updateOpStats } from '../utils/storage.js';
 
 const TOTAL_QUESTIONS = 10;
 
+const WORD_NUMBERS = {
+  zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,
+  ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,
+  seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,
+  sixty:60,seventy:70,eighty:80,ninety:90,hundred:100,
+};
+
+function parseSpoken(transcript) {
+  const t = transcript.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '');
+  // Try direct digit parse first
+  const direct = parseInt(t.replace(/\s+/g, ''), 10);
+  if (!isNaN(direct)) return direct;
+  // Word-based: "twenty four" → 24, "negative five" → -5
+  const negative = t.startsWith('negative') || t.startsWith('minus');
+  const words = t.replace(/negative|minus/g, '').trim().split(/[\s-]+/);
+  let total = 0, chunk = 0;
+  for (const w of words) {
+    const n = WORD_NUMBERS[w];
+    if (n === undefined) continue;
+    if (n === 100) { chunk = (chunk || 1) * 100; }
+    else if (n >= 10) { chunk += n; total += chunk; chunk = 0; }
+    else { chunk += n; }
+  }
+  total += chunk;
+  return total === 0 && !words.some(w => w === 'zero' || w === '0') ? NaN : (negative ? -total : total);
+}
+
 export function renderGame(container, navigate, state) {
   const isTimedSession = !!state.timerSecs;
   if (!isTimedSession) state.totalQuestions = TOTAL_QUESTIONS;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const voiceSupported = !!SpeechRecognition;
+  const useVoice = voiceSupported && state.inputMode === 'voice';
 
   container.innerHTML = `
     <div class="screen game-screen">
@@ -25,9 +56,17 @@ export function renderGame(container, navigate, state) {
       <div class="question-box" id="question-box">
         <div class="question-text" id="q-text"></div>
         <div class="feedback" id="feedback"></div>
-        <div class="answer-row">
+
+        <div id="type-input" class="answer-row" style="${useVoice ? 'display:none' : ''}">
           <input class="answer-input" type="number" id="ans-input" placeholder="?" autocomplete="off" />
           <button class="submit-btn" id="submit-btn">Go!</button>
+        </div>
+
+        <div id="voice-input" class="voice-row" style="${useVoice ? '' : 'display:none'}">
+          <div class="voice-status" id="voice-status">
+            <span class="voice-dot"></span>
+            <span class="voice-label" id="voice-label">Get ready…</span>
+          </div>
         </div>
       </div>
     </div>
@@ -38,6 +77,9 @@ export function renderGame(container, navigate, state) {
   let locked = false;
   let gameActive = true;
   let feedbackTimeout = null;
+  const inputMode = useVoice ? 'voice' : 'type';
+  let recognition = null;
+  let recognizing = false;
 
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');
@@ -61,19 +103,73 @@ export function renderGame(container, navigate, state) {
     sessionTimer.start();
   }
 
+  function setVoiceLabel(text, active = false) {
+    const dot   = container.querySelector('.voice-dot');
+    const label = container.querySelector('#voice-label');
+    if (!dot || !label) return;
+    dot.classList.toggle('active', active);
+    label.textContent = text;
+  }
+
+  function stopRecognition() {
+    if (recognition && recognizing) { recognition.abort(); recognizing = false; }
+  }
+
+  function startRecognition() {
+    if (!SpeechRecognition || locked || !gameActive) return;
+    stopRecognition();
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = () => {
+      recognizing = true;
+      setVoiceLabel('Listening…', true);
+    };
+
+    recognition.onresult = (e) => {
+      recognizing = false;
+      for (let i = 0; i < e.results[0].length; i++) {
+        const parsed = parseSpoken(e.results[0][i].transcript);
+        if (!isNaN(parsed)) { setVoiceLabel('Got it!'); handleAnswer(parsed); return; }
+      }
+      // Couldn't parse a number — retry automatically
+      setVoiceLabel("Didn't catch that…");
+      setTimeout(startRecognition, 400);
+    };
+
+    recognition.onerror = (e) => {
+      recognizing = false;
+      if (e.error === 'not-allowed') {
+        setVoiceLabel('Mic blocked — check permissions');
+      } else if (e.error !== 'aborted') {
+        setVoiceLabel('Try again…');
+        setTimeout(startRecognition, 600);
+      }
+    };
+
+    recognition.onend = () => { recognizing = false; };
+
+    recognition.start();
+  }
+
   function nextQuestion() {
     if (!gameActive) return;
     if (!isTimedSession && state.isFinished) { playFinish(); navigate('end', { state }); return; }
 
     locked = false;
+    stopRecognition();
     questionStartTime = Date.now();
     currentQuestion = generateQuestion(state.ops, state.range, getOpWeights(state.ops));
 
     container.querySelector('#q-text').textContent = `${currentQuestion.text} = ?`;
     container.querySelector('#ans-input').value = '';
-    container.querySelector('#ans-input').focus();
     container.querySelector('#feedback').textContent = '';
     container.querySelector('#feedback').className = 'feedback';
+    if (useVoice) { setVoiceLabel('Get ready…'); setTimeout(startRecognition, 300); }
+    else container.querySelector('#ans-input').focus();
 
     // Reset animations
     const qbox = container.querySelector('#question-box');

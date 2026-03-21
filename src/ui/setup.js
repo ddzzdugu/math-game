@@ -1,5 +1,7 @@
 import { availableOps } from '../operations/generator.js';
 
+const voiceSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
 /**
  * Renders the game setup / configuration screen.
  */
@@ -15,6 +17,7 @@ export function renderSetup(container, navigate) {
   let selectedOps = ['+'];
   let selectedRange = 10;
   let timerSecs = 60;
+  let inputMode = 'type';
 
   container.innerHTML = `
     <div class="screen setup-screen">
@@ -51,6 +54,15 @@ export function renderSetup(container, navigate) {
         </div>
       </div>
 
+      ${voiceSupported ? `
+      <div class="section">
+        <div class="section-label">Answer with</div>
+        <div class="btn-group">
+          <button class="toggle-btn active" id="mode-type">⌨️ Typing</button>
+          <button class="toggle-btn" id="mode-voice">🎤 Voice</button>
+        </div>
+      </div>` : ''}
+
       <button class="primary-btn" id="start-btn">Start playing! 🚀</button>
     </div>
   `;
@@ -80,12 +92,26 @@ export function renderSetup(container, navigate) {
     timerValOut.textContent = timerSecs === 0 ? 'Off' : `${timerSecs}s`;
   });
 
+  if (voiceSupported) {
+    container.querySelector('#mode-type').addEventListener('click', () => {
+      inputMode = 'type';
+      container.querySelector('#mode-type').classList.add('active');
+      container.querySelector('#mode-voice').classList.remove('active');
+    });
+    container.querySelector('#mode-voice').addEventListener('click', () => {
+      inputMode = 'voice';
+      container.querySelector('#mode-voice').classList.add('active');
+      container.querySelector('#mode-type').classList.remove('active');
+    });
+  }
+
   // Start
   container.querySelector('#start-btn').addEventListener('click', () => {
     navigate('game', {
       ops: selectedOps,
       range: selectedRange,
       timerSecs: timerSecs === 0 ? null : timerSecs,
+      inputMode,
     });
   });
 }
