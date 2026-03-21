@@ -22,6 +22,8 @@ export function renderGame(container, navigate, state) {
 
       <div class="timer-display" id="timer-display" style="display:none"></div>
 
+      <button class="stop-btn" id="stop-btn">Stop</button>
+
       <div class="question-box" id="question-box">
         <div class="question-text" id="q-text"></div>
         <div class="feedback" id="feedback"></div>
@@ -38,6 +40,17 @@ export function renderGame(container, navigate, state) {
   let locked = false;
   let gameActive = true;
   let feedbackTimeout = null;
+  let stopSessionTimer = null;
+
+  function endGame() {
+    gameActive = false;
+    clearTimeout(feedbackTimeout);
+    if (stopSessionTimer) stopSessionTimer();
+    playFinish();
+    navigate('end', { state });
+  }
+
+  container.querySelector('#stop-btn').addEventListener('click', endGame);
 
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');
@@ -51,19 +64,15 @@ export function renderGame(container, navigate, state) {
           `${((state.timerSecs - t) / state.timerSecs) * 100}%`;
         if (t <= 10) playTick();
       },
-      () => {
-        gameActive = false;
-        clearTimeout(feedbackTimeout);
-        playFinish();
-        navigate('end', { state });
-      }
+      () => endGame()
     );
     sessionTimer.start();
+    stopSessionTimer = () => sessionTimer.stop();
   }
 
   function nextQuestion() {
     if (!gameActive) return;
-    if (!isTimedSession && state.isFinished) { playFinish(); navigate('end', { state }); return; }
+    if (!isTimedSession && state.isFinished) { endGame(); return; }
 
     locked = false;
     questionStartTime = Date.now();
