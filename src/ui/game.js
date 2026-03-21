@@ -40,12 +40,13 @@ export function renderGame(container, navigate, state) {
   let locked = false;
   let gameActive = true;
   let feedbackTimeout = null;
-  let stopSessionTimer = null;
+  let sessionTimer = null;
 
   function endGame() {
     gameActive = false;
     clearTimeout(feedbackTimeout);
-    if (stopSessionTimer) stopSessionTimer();
+    if (sessionTimer) sessionTimer.stop();
+    document.removeEventListener('keydown', onKey);
     playFinish();
     navigate('end', { state });
   }
@@ -55,7 +56,7 @@ export function renderGame(container, navigate, state) {
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');
     disp.style.display = 'block';
-    const sessionTimer = new Timer(
+    sessionTimer = new Timer(
       state.timerSecs,
       (t) => {
         disp.textContent = `⏱ ${t}s`;
@@ -67,7 +68,6 @@ export function renderGame(container, navigate, state) {
       () => endGame()
     );
     sessionTimer.start();
-    stopSessionTimer = () => sessionTimer.stop();
   }
 
   function nextQuestion() {
@@ -131,12 +131,10 @@ export function renderGame(container, navigate, state) {
     handleAnswer(v);
   });
 
-  document.addEventListener('keydown', function onKey(e) {
-    if (e.key === 'Enter') {
-      if (!gameActive) { document.removeEventListener('keydown', onKey); return; }
-      container.querySelector('#submit-btn').click();
-    }
-  });
+  function onKey(e) {
+    if (e.key === 'Enter') container.querySelector('#submit-btn').click();
+  }
+  document.addEventListener('keydown', onKey);
 
   nextQuestion();
 }
