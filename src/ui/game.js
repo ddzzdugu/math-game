@@ -2,6 +2,7 @@ import { generateQuestion } from '../operations/generator.js';
 import { Timer } from '../utils/timer.js';
 import { CORRECT_MESSAGES, WRONG_MESSAGES, randomFrom } from '../utils/messages.js';
 import { playCorrect, playWrong, playFinish, playTick } from '../utils/sound.js';
+import { getOpWeights, updateOpStats } from '../utils/storage.js';
 
 const TOTAL_QUESTIONS = 10;
 
@@ -21,7 +22,7 @@ export function renderGame(container, navigate, state) {
 
       <div class="timer-display" id="timer-display" style="display:none"></div>
 
-      <div class="question-box">
+      <div class="question-box" id="question-box">
         <div class="question-text" id="q-text"></div>
         <div class="feedback" id="feedback"></div>
         <div class="answer-row">
@@ -33,11 +34,11 @@ export function renderGame(container, navigate, state) {
   `;
 
   let currentQuestion = null;
+  let questionStartTime = null;
   let locked = false;
   let gameActive = true;
   let feedbackTimeout = null;
 
-  // Session timer — started once, ends the game when it expires
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');
     disp.style.display = 'block';
@@ -65,13 +66,18 @@ export function renderGame(container, navigate, state) {
     if (!isTimedSession && state.isFinished) { playFinish(); navigate('end', { state }); return; }
 
     locked = false;
-    currentQuestion = generateQuestion(state.ops, state.range);
+    questionStartTime = Date.now();
+    currentQuestion = generateQuestion(state.ops, state.range, getOpWeights(state.ops));
 
     container.querySelector('#q-text').textContent = `${currentQuestion.text} = ?`;
     container.querySelector('#ans-input').value = '';
     container.querySelector('#ans-input').focus();
     container.querySelector('#feedback').textContent = '';
     container.querySelector('#feedback').className = 'feedback';
+
+    // Reset animations
+    const qbox = container.querySelector('#question-box');
+    qbox.classList.remove('correct-bounce', 'wrong-shake');
 
     if (isTimedSession) {
       container.querySelector('#sc-q').textContent = state.currentQ;
@@ -88,9 +94,16 @@ export function renderGame(container, navigate, state) {
 
     const userAnswer = parseInt(rawVal, 10);
     const isCorrect = userAnswer === currentQuestion.answer;
-    const timeTaken = 0;
+    const timeTaken = Math.round((Date.now() - questionStartTime) / 1000);
 
     state.recordAnswer({ question: currentQuestion.text, userAnswer, isCorrect, timeTaken });
+    updateOpStats(currentQuestion.op, isCorrect);
+
+    // Animate question box
+    const qbox = container.querySelector('#question-box');
+    qbox.classList.remove('correct-bounce', 'wrong-shake');
+    void qbox.offsetWidth; // force reflow to restart animation
+    qbox.classList.add(isCorrect ? 'correct-bounce' : 'wrong-shake');
 
     const fb = container.querySelector('#feedback');
     fb.textContent = isCorrect ? randomFrom(CORRECT_MESSAGES) : randomFrom(WRONG_MESSAGES);
@@ -109,8 +122,11 @@ export function renderGame(container, navigate, state) {
     handleAnswer(v);
   });
 
-  container.querySelector('#ans-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') container.querySelector('#submit-btn').click();
+  document.addEventListener('keydown', function onKey(e) {
+    if (e.key === 'Enter') {
+      if (!gameActive) { document.removeEventListener('keydown', onKey); return; }
+      container.querySelector('#submit-btn').click();
+    }
   });
 
   nextQuestion();
