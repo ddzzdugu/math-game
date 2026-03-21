@@ -11,7 +11,8 @@
 function pickVoice(voices, theme) {
   const enhanced = v => /enhanced|premium|neural/i.test(v.name);
 
-  if (theme === 'hp') {
+  const british = ['hp', 'los'];   // warm, storytelling feel
+  if (british.includes(theme)) {
     return voices.find(v => v.lang === 'en-GB' && enhanced(v)) ||
            voices.find(v => v.lang === 'en-GB') ||
            voices.find(v => v.lang === 'en-AU' && enhanced(v)) ||
@@ -66,8 +67,9 @@ export function speak(text, theme) {
   }
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate  = theme === 'hp' ? 0.9 : 1.0;
-  utterance.pitch = theme === 'hp' ? 0.95 : 1.0;
+  const slow = ['hp', 'los'];
+  utterance.rate  = slow.includes(theme) ? 0.9 : 1.0;
+  utterance.pitch = slow.includes(theme) ? 0.95 : 1.0;
 
   const voices = cachedVoices || window.speechSynthesis.getVoices();
   const voice  = pickVoice(voices, theme);
