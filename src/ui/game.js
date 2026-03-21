@@ -168,7 +168,7 @@ export function renderGame(container, navigate, state) {
     container.querySelector('#ans-input').value = '';
     container.querySelector('#feedback').textContent = '';
     container.querySelector('#feedback').className = 'feedback';
-    if (useVoice) { setVoiceLabel('Get ready…'); setTimeout(startRecognition, 300); }
+    if (useVoice) { setVoiceLabel('Get ready…'); setTimeout(startRecognition, 150); }
     else container.querySelector('#ans-input').focus();
 
     // Reset animations
@@ -209,7 +209,7 @@ export function renderGame(container, navigate, state) {
     container.querySelector('#sc-correct').textContent = state.correct;
     container.querySelector('#sc-wrong').textContent = state.wrong;
 
-    feedbackTimeout = setTimeout(nextQuestion, 1100);
+    feedbackTimeout = setTimeout(nextQuestion, useVoice ? 600 : 1100);
   }
 
   container.querySelector('#submit-btn').addEventListener('click', () => {
