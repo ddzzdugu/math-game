@@ -63,8 +63,10 @@ export function renderGame(container, navigate, state) {
         </div>
 
         <div id="voice-input" class="voice-row" style="${useVoice ? '' : 'display:none'}">
-          <button class="mic-btn" id="mic-btn">🎤</button>
-          <div class="voice-hint" id="voice-hint">Tap to speak your answer</div>
+          <div class="voice-status" id="voice-status">
+            <span class="voice-dot"></span>
+            <span class="voice-label" id="voice-label">Get ready…</span>
+          </div>
         </div>
       </div>
     </div>
@@ -101,12 +103,16 @@ export function renderGame(container, navigate, state) {
     sessionTimer.start();
   }
 
+  function setVoiceLabel(text, active = false) {
+    const dot   = container.querySelector('.voice-dot');
+    const label = container.querySelector('#voice-label');
+    if (!dot || !label) return;
+    dot.classList.toggle('active', active);
+    label.textContent = text;
+  }
+
   function stopRecognition() {
     if (recognition && recognizing) { recognition.abort(); recognizing = false; }
-    const micBtn = container.querySelector('#mic-btn');
-    if (micBtn) { micBtn.classList.remove('listening'); micBtn.textContent = '🎤'; }
-    const hint = container.querySelector('#voice-hint');
-    if (hint) hint.textContent = 'Tap to speak your answer';
   }
 
   function startRecognition() {
@@ -118,42 +124,33 @@ export function renderGame(container, navigate, state) {
     recognition.interimResults = false;
     recognition.maxAlternatives = 3;
 
-    const micBtn = container.querySelector('#mic-btn');
-    const hint = container.querySelector('#voice-hint');
-
     recognition.onstart = () => {
       recognizing = true;
-      micBtn.classList.add('listening');
-      micBtn.textContent = '⏹';
-      hint.textContent = 'Listening…';
+      setVoiceLabel('Listening…', true);
     };
 
     recognition.onresult = (e) => {
       recognizing = false;
-      micBtn.classList.remove('listening');
-      micBtn.textContent = '🎤';
-      // Try each alternative until we parse a valid number
       for (let i = 0; i < e.results[0].length; i++) {
         const parsed = parseSpoken(e.results[0][i].transcript);
-        if (!isNaN(parsed)) { handleAnswer(parsed); return; }
+        if (!isNaN(parsed)) { setVoiceLabel('Got it!'); handleAnswer(parsed); return; }
       }
-      hint.textContent = "Didn't catch that — try again";
+      // Couldn't parse a number — retry automatically
+      setVoiceLabel("Didn't catch that…");
+      setTimeout(startRecognition, 400);
     };
 
     recognition.onerror = (e) => {
       recognizing = false;
-      micBtn.classList.remove('listening');
-      micBtn.textContent = '🎤';
-      hint.textContent = e.error === 'not-allowed' ? 'Mic blocked — check permissions' : 'Try again';
-    };
-
-    recognition.onend = () => {
-      recognizing = false;
-      if (micBtn.classList.contains('listening')) {
-        micBtn.classList.remove('listening');
-        micBtn.textContent = '🎤';
+      if (e.error === 'not-allowed') {
+        setVoiceLabel('Mic blocked — check permissions');
+      } else if (e.error !== 'aborted') {
+        setVoiceLabel('Try again…');
+        setTimeout(startRecognition, 600);
       }
     };
+
+    recognition.onend = () => { recognizing = false; };
 
     recognition.start();
   }
@@ -169,9 +166,10 @@ export function renderGame(container, navigate, state) {
 
     container.querySelector('#q-text').textContent = `${currentQuestion.text} = ?`;
     container.querySelector('#ans-input').value = '';
-    if (inputMode === 'type') container.querySelector('#ans-input').focus();
     container.querySelector('#feedback').textContent = '';
     container.querySelector('#feedback').className = 'feedback';
+    if (useVoice) { setVoiceLabel('Get ready…'); setTimeout(startRecognition, 300); }
+    else container.querySelector('#ans-input').focus();
 
     // Reset animations
     const qbox = container.querySelector('#question-box');
@@ -220,16 +218,10 @@ export function renderGame(container, navigate, state) {
     handleAnswer(v);
   });
 
-  container.querySelector('#mic-btn')?.addEventListener('click', () => {
-    if (recognizing) stopRecognition();
-    else startRecognition();
-  });
-
   document.addEventListener('keydown', function onKey(e) {
     if (e.key === 'Enter') {
       if (!gameActive) { document.removeEventListener('keydown', onKey); return; }
-      if (inputMode === 'type') container.querySelector('#submit-btn').click();
-      else startRecognition();
+      container.querySelector('#submit-btn').click();
     }
   });
 
