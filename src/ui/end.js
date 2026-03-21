@@ -41,7 +41,7 @@ function historyHTML(sessions) {
 
 export function renderEnd(container, navigate, { state }) {
   const tier              = getTier(state.correct);
-  const { theme, quote }  = getThemedTier(state.correct);
+  const { theme, quote }  = getThemedTier(state.accuracy);
   const isTimedSession    = !!state.timerSecs;
 
   const scoreDisplay = isTimedSession

@@ -42,28 +42,32 @@ export const END_TIERS = [
  * Themed end-screen encouragement tiers.
  * Each theme has the same 5 tiers as END_TIERS (checked top-down by min correct).
  */
+/**
+ * Themed tiers are keyed by accuracy % (0–100), not raw correct count.
+ * This ensures a 100% accuracy short session gets the top quote.
+ */
 export const THEMED_TIERS = {
   hp: [
-    { min: 10, quote: "Extraordinary! In all my years at Hogwarts, I have rarely witnessed such arithmantic brilliance. Ten points to your house — no, make it a hundred!" },
-    { min: 8,  quote: "Splendid work, young witch or wizard! Your command of numbers would make even Professor McGonagall crack a smile." },
-    { min: 6,  quote: "Well done! The magic of mathematics flows strongly through you. A few more spells of practice and you shall be unstoppable." },
-    { min: 4,  quote: "A decent effort, and remember — the bravest witches and wizards are not those who never stumble, but those who rise again. On your feet!" },
-    { min: 0,  quote: "Every great sorcerer once stood exactly where you stand today. The magic is within you. I am quite certain of it." },
+    { min: 100, quote: "Extraordinary! In all my years at Hogwarts, I have rarely witnessed such arithmantic brilliance. Ten points to your house — no, make it a hundred!" },
+    { min: 80,  quote: "Splendid work, young witch or wizard! Your command of numbers would make even Professor McGonagall crack a smile." },
+    { min: 60,  quote: "Well done! The magic of mathematics flows strongly through you. A few more spells of practice and you shall be unstoppable." },
+    { min: 40,  quote: "A decent effort, and remember — the bravest witches and wizards are not those who never stumble, but those who rise again. On your feet!" },
+    { min: 0,   quote: "Every great sorcerer once stood exactly where you stand today. The magic is within you. I am quite certain of it." },
   ],
   pj: [
-    { min: 10, quote: "Oh. My. Gods. That was LEGENDARY! Even Athena put down her scroll to slow-clap. You just out-smarted Olympus!" },
-    { min: 8,  quote: "Dude, the Oracle didn't predict this level of awesome! Camp Half-Blood is calling your name — hero material, right here!" },
-    { min: 6,  quote: "Not bad, demigod! You sliced through those problems like Riptide through a monster. Keep training and Mount Olympus will notice!" },
-    { min: 4,  quote: "Hey, even Percy failed his first quest! What matters is you showed up and fought. The gods respect that — try again, hero!" },
-    { min: 0,  quote: "Every hero's journey starts with a stumble. Annabeth says the smartest move right now is to go again. And she's basically always right." },
+    { min: 100, quote: "Oh. My. Gods. That was LEGENDARY! Even Athena put down her scroll to slow-clap. You just out-smarted Olympus!" },
+    { min: 80,  quote: "Dude, the Oracle didn't predict this level of awesome! Camp Half-Blood is calling your name — hero material, right here!" },
+    { min: 60,  quote: "Not bad, demigod! You sliced through those problems like Riptide through a monster. Keep training and Mount Olympus will notice!" },
+    { min: 40,  quote: "Hey, even Percy failed his first quest! What matters is you showed up and fought. The gods respect that — try again, hero!" },
+    { min: 0,   quote: "Every hero's journey starts with a stumble. Annabeth says the smartest move right now is to go again. And she's basically always right." },
   ],
 };
 
 export const THEMES = ['hp', 'pj'];
 
-export function getThemedTier(correctCount) {
+export function getThemedTier(accuracy) {
   const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
-  const tier  = THEMED_TIERS[theme].find(t => correctCount >= t.min);
+  const tier  = THEMED_TIERS[theme].find(t => accuracy >= t.min);
   return { theme, quote: tier.quote };
 }
 
