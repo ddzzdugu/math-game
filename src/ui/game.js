@@ -77,9 +77,15 @@ export function renderGame(container, navigate, state) {
   let locked = false;
   let gameActive = true;
   let feedbackTimeout = null;
-  const inputMode = useVoice ? 'voice' : 'type';
   let recognition = null;
   let recognizing = false;
+
+  function onKey(e) {
+    if (e.key === 'Enter') {
+      if (!gameActive) { document.removeEventListener('keydown', onKey); return; }
+      container.querySelector('#submit-btn').click();
+    }
+  }
 
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');
@@ -96,6 +102,8 @@ export function renderGame(container, navigate, state) {
       () => {
         gameActive = false;
         clearTimeout(feedbackTimeout);
+        stopRecognition();
+        document.removeEventListener('keydown', onKey);
         playFinish();
         navigate('end', { state });
       }
@@ -218,12 +226,7 @@ export function renderGame(container, navigate, state) {
     handleAnswer(v);
   });
 
-  document.addEventListener('keydown', function onKey(e) {
-    if (e.key === 'Enter') {
-      if (!gameActive) { document.removeEventListener('keydown', onKey); return; }
-      container.querySelector('#submit-btn').click();
-    }
-  });
+  document.addEventListener('keydown', onKey);
 
   nextQuestion();
 }

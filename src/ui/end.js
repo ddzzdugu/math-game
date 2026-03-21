@@ -1,9 +1,7 @@
-import { getTier, getThemedTier } from '../utils/messages.js';
+import { getTier, getThemedTier, OP_LABELS, THEME_LABELS } from '../utils/messages.js';
 import { launchEffect } from './effects.js';
 import { saveSession, getHistory } from '../utils/storage.js';
 import { speak } from '../utils/tts.js';
-
-const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -72,7 +70,7 @@ export function renderEnd(container, navigate, { state }) {
       <p class="end-accuracy">${subDisplay}</p>
 
       <div class="themed-quote themed-quote--${theme}">
-        <span class="quote-badge">${theme === 'hp' ? '⚡ Hogwarts' : '⚡ Camp Half-Blood'}</span>
+        <span class="quote-badge">${THEME_LABELS[theme]}</span>
         <p class="quote-text">${quote}</p>
         <button class="quote-replay" id="quote-replay" title="Read again">🔊</button>
       </div>

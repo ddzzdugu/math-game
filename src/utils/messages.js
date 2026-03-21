@@ -115,6 +115,10 @@ export const THEMED_TIERS = {
 
 export const THEMES = ['hp', 'pj'];
 
+export const THEME_LABELS = { hp: '⚡ Hogwarts', pj: '⚡ Camp Half-Blood' };
+
+export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
 export function getThemedTier(accuracy) {
   const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
   const tier  = THEMED_TIERS[theme].find(t => accuracy >= t.min);

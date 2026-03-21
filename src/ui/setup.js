@@ -1,5 +1,6 @@
 import { availableOps } from '../operations/generator.js';
 import { unlockTTS } from '../utils/tts.js';
+import { OP_LABELS } from '../utils/messages.js';
 
 const voiceSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
@@ -7,7 +8,6 @@ const voiceSupported = !!(window.SpeechRecognition || window.webkitSpeechRecogni
  * Renders the game setup / configuration screen.
  */
 export function renderSetup(container, navigate) {
-  const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
   const RANGES = [
     { label: '0 – 9',   value: 10 },
     { label: '0 – 19',  value: 20 },

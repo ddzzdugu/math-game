@@ -7,20 +7,21 @@ function load(key, def) {
   catch { return def; }
 }
 
+function recentSessions() {
+  const cutoff = Date.now() - THIRTY_DAYS;
+  return load(HISTORY_KEY, []).filter(s => new Date(s.date).getTime() > cutoff);
+}
+
 /** Save a completed session; prune entries older than 30 days. */
 export function saveSession({ correct, total, accuracy, avgSpeed, ops, timerSecs }) {
-  const cutoff  = Date.now() - THIRTY_DAYS;
-  const history = load(HISTORY_KEY, []).filter(s => new Date(s.date).getTime() > cutoff);
+  const history = recentSessions();
   history.push({ date: new Date().toISOString(), correct, total, accuracy, avgSpeed, ops, timerSecs });
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
 /** Return sessions from the past 30 days, newest first. */
 export function getHistory() {
-  const cutoff = Date.now() - THIRTY_DAYS;
-  return load(HISTORY_KEY, [])
-    .filter(s => new Date(s.date).getTime() > cutoff)
-    .reverse();
+  return recentSessions().reverse();
 }
 
 /** Record whether an answer for a given op was correct. */
