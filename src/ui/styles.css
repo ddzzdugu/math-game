@@ -382,3 +382,28 @@ body {
 }
 .h-acc   { text-align: right; font-weight: 600; color: var(--purple-dark); }
 .h-speed { text-align: right; color: #999; }
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 420px) {
+  body { padding: 0.75rem 0.5rem; }
+
+  .screen { padding: 1.25rem 1rem; }
+
+  .end-emoji  { font-size: 48px; }
+  .end-title  { font-size: 21px; }
+  .end-score  { font-size: 30px; }
+
+  .end-actions {
+    flex-direction: column;
+  }
+  .end-actions .primary-btn,
+  .end-actions .secondary-btn { width: 100%; flex: none; }
+
+  .question-text { font-size: 36px; }
+
+  /* Drop the speed column in history to save space */
+  .h-header, .h-row {
+    grid-template-columns: 48px 32px 1fr 36px;
+  }
+  .h-speed { display: none; }
+}
