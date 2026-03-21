@@ -137,8 +137,8 @@ export function renderGame(container, navigate, state) {
 
     recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 3;
+    recognition.interimResults = true;   // get results as you speak, don't wait for silence
+    recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
       recognizing = true;
@@ -146,12 +146,25 @@ export function renderGame(container, navigate, state) {
     };
 
     recognition.onresult = (e) => {
-      recognizing = false;
-      for (let i = 0; i < e.results[0].length; i++) {
-        const parsed = parseSpoken(e.results[0][i].transcript);
-        if (!isNaN(parsed)) { setVoiceLabel('Got it!'); handleAnswer(parsed); return; }
+      // Check every result (interim and final) for a parseable number
+      for (const result of e.results) {
+        const parsed = parseSpoken(result[0].transcript);
+        if (!isNaN(parsed)) {
+          // Got a number — don't wait for silence detection, submit immediately
+          recognition.abort();
+          recognizing = false;
+          setVoiceLabel('Got it!');
+          handleAnswer(parsed);
+          return;
+        }
       }
-      // Couldn't parse a number — retry automatically
+      // Still listening, no number yet — keep going
+    };
+
+    // onresult handles all final results; only reach here if nothing was parseable
+    recognition.onend = () => {
+      if (!recognizing) return; // already handled by onresult abort
+      recognizing = false;
       setVoiceLabel("Didn't catch that…");
       setTimeout(startRecognition, 400);
     };
@@ -165,8 +178,6 @@ export function renderGame(container, navigate, state) {
         setTimeout(startRecognition, 600);
       }
     };
-
-    recognition.onend = () => { recognizing = false; };
 
     recognition.start();
   }
@@ -225,7 +236,7 @@ export function renderGame(container, navigate, state) {
     container.querySelector('#sc-correct').textContent = state.correct;
     container.querySelector('#sc-wrong').textContent = state.wrong;
 
-    feedbackTimeout = setTimeout(nextQuestion, useVoice ? 600 : 1100);
+    feedbackTimeout = setTimeout(nextQuestion, useVoice ? 300 : 1100);
   }
 
   container.querySelector('#submit-btn').addEventListener('click', () => {
