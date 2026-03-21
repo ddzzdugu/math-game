@@ -226,30 +226,6 @@ body {
 }
 .submit-btn:hover { background: var(--purple-mid); }
 
-/* ── Input Mode Toggle ───────────────────────────────────── */
-.input-mode-toggle {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-.mode-btn {
-  padding: 5px 16px;
-  border: 1.5px solid #ddd;
-  border-radius: 20px;
-  background: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.15s;
-  color: #888;
-}
-.mode-btn.active {
-  background: var(--purple-light);
-  border-color: var(--purple-mid);
-  color: var(--purple-text);
-  font-weight: 600;
-}
-
 /* ── Voice Input ─────────────────────────────────────────── */
 .voice-row {
   display: flex;

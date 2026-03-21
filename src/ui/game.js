@@ -39,6 +39,7 @@ export function renderGame(container, navigate, state) {
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const voiceSupported = !!SpeechRecognition;
+  const useVoice = voiceSupported && state.inputMode === 'voice';
 
   container.innerHTML = `
     <div class="screen game-screen">
@@ -56,18 +57,12 @@ export function renderGame(container, navigate, state) {
         <div class="question-text" id="q-text"></div>
         <div class="feedback" id="feedback"></div>
 
-        ${voiceSupported ? `
-        <div class="input-mode-toggle">
-          <button class="mode-btn active" id="mode-type">⌨️ Type</button>
-          <button class="mode-btn" id="mode-voice">🎤 Voice</button>
-        </div>` : ''}
-
-        <div id="type-input" class="answer-row">
+        <div id="type-input" class="answer-row" style="${useVoice ? 'display:none' : ''}">
           <input class="answer-input" type="number" id="ans-input" placeholder="?" autocomplete="off" />
           <button class="submit-btn" id="submit-btn">Go!</button>
         </div>
 
-        <div id="voice-input" class="voice-row" style="display:none">
+        <div id="voice-input" class="voice-row" style="${useVoice ? '' : 'display:none'}">
           <button class="mic-btn" id="mic-btn">🎤</button>
           <div class="voice-hint" id="voice-hint">Tap to speak your answer</div>
         </div>
@@ -80,7 +75,7 @@ export function renderGame(container, navigate, state) {
   let locked = false;
   let gameActive = true;
   let feedbackTimeout = null;
-  let inputMode = 'type';
+  const inputMode = useVoice ? 'voice' : 'type';
   let recognition = null;
   let recognizing = false;
 
@@ -104,18 +99,6 @@ export function renderGame(container, navigate, state) {
       }
     );
     sessionTimer.start();
-  }
-
-  function setMode(mode) {
-    inputMode = mode;
-    container.querySelector('#type-input').style.display = mode === 'type' ? '' : 'none';
-    container.querySelector('#voice-input').style.display = mode === 'voice' ? '' : 'none';
-    container.querySelector('#mode-type')?.classList.toggle('active', mode === 'type');
-    container.querySelector('#mode-voice')?.classList.toggle('active', mode === 'voice');
-    if (mode === 'type') {
-      stopRecognition();
-      container.querySelector('#ans-input').focus();
-    }
   }
 
   function stopRecognition() {
@@ -241,9 +224,6 @@ export function renderGame(container, navigate, state) {
     if (recognizing) stopRecognition();
     else startRecognition();
   });
-
-  container.querySelector('#mode-type')?.addEventListener('click', () => setMode('type'));
-  container.querySelector('#mode-voice')?.addEventListener('click', () => setMode('voice'));
 
   document.addEventListener('keydown', function onKey(e) {
     if (e.key === 'Enter') {

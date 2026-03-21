@@ -96,7 +96,7 @@ export function renderEnd(container, navigate, { state }) {
 
   container.querySelector('#play-again').addEventListener('click', () => {
     stopEffect();
-    navigate('game', { ops: state.ops, range: state.range, timerSecs: state.timerSecs });
+    navigate('game', { ops: state.ops, range: state.range, timerSecs: state.timerSecs, inputMode: state.inputMode });
   });
 
   container.querySelector('#change-settings').addEventListener('click', () => {
