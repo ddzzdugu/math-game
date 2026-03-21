@@ -53,6 +53,8 @@ export function renderGame(container, navigate, state) {
 
       <div class="timer-display" id="timer-display" style="display:none"></div>
 
+      <button class="stop-btn" id="stop-btn">Stop</button>
+
       <div class="question-box" id="question-box">
         <div class="question-text" id="q-text"></div>
         <div class="feedback" id="feedback"></div>
@@ -79,6 +81,7 @@ export function renderGame(container, navigate, state) {
   let feedbackTimeout = null;
   let recognition = null;
   let recognizing = false;
+  let sessionTimer = null;
 
   function onKey(e) {
     if (e.key === 'Enter') {
@@ -87,10 +90,22 @@ export function renderGame(container, navigate, state) {
     }
   }
 
+  function endGame() {
+    gameActive = false;
+    clearTimeout(feedbackTimeout);
+    stopRecognition();
+    if (sessionTimer) sessionTimer.stop();
+    document.removeEventListener('keydown', onKey);
+    playFinish();
+    navigate('end', { state });
+  }
+
+  container.querySelector('#stop-btn').addEventListener('click', endGame);
+
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');
     disp.style.display = 'block';
-    const sessionTimer = new Timer(
+    sessionTimer = new Timer(
       state.timerSecs,
       (t) => {
         disp.textContent = `⏱ ${t}s`;
@@ -99,14 +114,7 @@ export function renderGame(container, navigate, state) {
           `${((state.timerSecs - t) / state.timerSecs) * 100}%`;
         if (t <= 10) playTick();
       },
-      () => {
-        gameActive = false;
-        clearTimeout(feedbackTimeout);
-        stopRecognition();
-        document.removeEventListener('keydown', onKey);
-        playFinish();
-        navigate('end', { state });
-      }
+      () => endGame()
     );
     sessionTimer.start();
   }
@@ -165,7 +173,7 @@ export function renderGame(container, navigate, state) {
 
   function nextQuestion() {
     if (!gameActive) return;
-    if (!isTimedSession && state.isFinished) { playFinish(); navigate('end', { state }); return; }
+    if (!isTimedSession && state.isFinished) { endGame(); return; }
 
     locked = false;
     stopRecognition();

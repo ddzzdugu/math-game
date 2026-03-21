@@ -160,6 +160,20 @@ body {
   transition: width 0.35s ease;
 }
 
+.stop-btn {
+  display: block;
+  margin: 0 0 0.75rem auto;
+  padding: 5px 14px;
+  background: transparent;
+  color: #bbb;
+  border: 1.5px solid #e0ddf8;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.stop-btn:hover { color: var(--coral-mid); border-color: var(--coral-mid); }
+
 .timer-display {
   text-align: center;
   font-size: 17px;
