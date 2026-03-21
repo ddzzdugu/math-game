@@ -44,6 +44,11 @@ export function renderSetup(container, navigate) {
               ${r.label}
             </button>
           `).join('')}
+          <button class="toggle-btn" id="range-custom-btn">Custom</button>
+        </div>
+        <div id="custom-range-row" class="custom-range-row" style="display:none">
+          <span class="custom-range-label">0 –</span>
+          <input class="custom-range-input" id="custom-range-input" type="number" min="2" max="9999" placeholder="50" />
         </div>
       </div>
 
@@ -77,13 +82,34 @@ export function renderSetup(container, navigate) {
     });
   });
 
+  const customRangeRow = container.querySelector('#custom-range-row');
+  const customRangeInput = container.querySelector('#custom-range-input');
+
+  function clearRangeActive() {
+    container.querySelectorAll('[data-range], #range-custom-btn').forEach(b => b.classList.remove('active'));
+  }
+
   // Range toggles (single select)
   container.querySelectorAll('[data-range]').forEach(btn => {
     btn.addEventListener('click', () => {
-      container.querySelectorAll('[data-range]').forEach(b => b.classList.remove('active'));
+      clearRangeActive();
       btn.classList.add('active');
+      customRangeRow.style.display = 'none';
       selectedRange = +btn.dataset.range;
     });
+  });
+
+  container.querySelector('#range-custom-btn').addEventListener('click', () => {
+    clearRangeActive();
+    container.querySelector('#range-custom-btn').classList.add('active');
+    customRangeRow.style.display = 'flex';
+    customRangeInput.focus();
+    if (customRangeInput.value) selectedRange = Math.max(2, +customRangeInput.value);
+  });
+
+  customRangeInput.addEventListener('input', () => {
+    const v = +customRangeInput.value;
+    if (v >= 2) selectedRange = v;
   });
 
   const timerValInput = container.querySelector('#timer-val');
