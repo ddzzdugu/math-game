@@ -9,14 +9,14 @@ const voiceSupported = !!(window.SpeechRecognition || window.webkitSpeechRecogni
  */
 export function renderSetup(container, navigate) {
   const RANGES = [
-    { label: '0 – 9',   value: 10 },
-    { label: '0 – 19',  value: 20 },
-    { label: '0 – 99',  value: 100 },
-    { label: '0 – 999', value: 1000 },
+    { label: '0 – 9',   value: { min: 0, max: 10 } },
+    { label: '0 – 19',  value: { min: 0, max: 20 } },
+    { label: '0 – 99',  value: { min: 0, max: 100 } },
+    { label: '0 – 999', value: { min: 0, max: 1000 } },
   ];
 
   let selectedOps = ['+'];
-  let selectedRange = 10;
+  let selectedRange = { min: 0, max: 10 };
   let timerSecs = 60;
   let inputMode = 'type';
 
@@ -40,15 +40,16 @@ export function renderSetup(container, navigate) {
         <div class="section-label">Number range</div>
         <div class="btn-group" id="range-group">
           ${RANGES.map((r, i) => `
-            <button class="toggle-btn ${i === 0 ? 'active' : ''}" data-range="${r.value}">
+            <button class="toggle-btn ${i === 0 ? 'active' : ''}" data-range-idx="${i}">
               ${r.label}
             </button>
           `).join('')}
           <button class="toggle-btn" id="range-custom-btn">Custom</button>
         </div>
         <div id="custom-range-row" class="custom-range-row" style="display:none">
-          <span class="custom-range-label">0 –</span>
-          <input class="custom-range-input" id="custom-range-input" type="number" min="2" max="9999" placeholder="50" />
+          <input class="custom-range-input" id="custom-min-input" type="number" min="0" max="9998" placeholder="0" />
+          <span class="custom-range-label">–</span>
+          <input class="custom-range-input" id="custom-max-input" type="number" min="1" max="9999" placeholder="50" />
         </div>
       </div>
 
@@ -83,19 +84,26 @@ export function renderSetup(container, navigate) {
   });
 
   const customRangeRow = container.querySelector('#custom-range-row');
-  const customRangeInput = container.querySelector('#custom-range-input');
+  const customMinInput = container.querySelector('#custom-min-input');
+  const customMaxInput = container.querySelector('#custom-max-input');
 
   function clearRangeActive() {
-    container.querySelectorAll('[data-range], #range-custom-btn').forEach(b => b.classList.remove('active'));
+    container.querySelectorAll('[data-range-idx], #range-custom-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  function readCustomRange() {
+    const min = customMinInput.value !== '' ? Math.max(0, +customMinInput.value) : 0;
+    const max = customMaxInput.value !== '' ? +customMaxInput.value : null;
+    if (max !== null && max > min) selectedRange = { min, max: max + 1 }; // +1 so max is inclusive
   }
 
   // Range toggles (single select)
-  container.querySelectorAll('[data-range]').forEach(btn => {
+  container.querySelectorAll('[data-range-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
       clearRangeActive();
       btn.classList.add('active');
       customRangeRow.style.display = 'none';
-      selectedRange = +btn.dataset.range;
+      selectedRange = RANGES[+btn.dataset.rangeIdx].value;
     });
   });
 
@@ -103,14 +111,12 @@ export function renderSetup(container, navigate) {
     clearRangeActive();
     container.querySelector('#range-custom-btn').classList.add('active');
     customRangeRow.style.display = 'flex';
-    customRangeInput.focus();
-    if (customRangeInput.value) selectedRange = Math.max(2, +customRangeInput.value);
+    customMinInput.focus();
+    readCustomRange();
   });
 
-  customRangeInput.addEventListener('input', () => {
-    const v = +customRangeInput.value;
-    if (v >= 2) selectedRange = v;
-  });
+  customMinInput.addEventListener('input', readCustomRange);
+  customMaxInput.addEventListener('input', readCustomRange);
 
   const timerValInput = container.querySelector('#timer-val');
   const timerValOut = container.querySelector('#timer-val-out');

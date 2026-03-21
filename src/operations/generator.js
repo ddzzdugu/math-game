@@ -1,34 +1,32 @@
 /**
  * Question generators — one per operation.
- * To add a new operation (e.g. fractions, powers), just add a new entry here.
- *
- * Each generator receives `range` (max number) and returns:
+ * Each generator receives `range` ({ min, max }) and returns:
  *   { text: string, answer: number, hint?: string }
  */
 
 const generators = {
-  '+': (range) => {
-    const a = randInt(range), b = randInt(range);
+  '+': ({ min, max }) => {
+    const a = randBetween(min, max), b = randBetween(min, max);
     return { text: `${a} + ${b}`, answer: a + b };
   },
 
-  '-': (range) => {
-    let a = randInt(range), b = randInt(range);
+  '-': ({ min, max }) => {
+    let a = randBetween(min, max), b = randBetween(min, max);
     if (b > a) [a, b] = [b, a];          // keep answer >= 0
     return { text: `${a} − ${b}`, answer: a - b };
   },
 
-  '*': (range) => {
+  '*': ({ max }) => {
     // cap multipliers at 12 so it stays manageable
-    const cap = Math.min(12, range);
-    const a = randInt(cap), b = randInt(cap);
+    const cap = Math.min(12, max);
+    const a = randBetween(0, cap), b = randBetween(0, cap);
     return { text: `${a} × ${b}`, answer: a * b };
   },
 
-  '/': (range) => {
-    const cap = Math.min(12, range);
-    const b = randInt(cap - 1) + 1;      // divisor never 0
-    const answer = randInt(cap);
+  '/': ({ max }) => {
+    const cap = Math.min(12, max);
+    const b = randBetween(1, cap);
+    const answer = randBetween(0, cap);
     const a = b * answer;
     return { text: `${a} ÷ ${b}`, answer };
   },
@@ -38,8 +36,8 @@ const generators = {
   // '**': (range) => { ... },  // powers / squares
 };
 
-function randInt(max) {
-  return Math.floor(Math.random() * max);
+function randBetween(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 /**

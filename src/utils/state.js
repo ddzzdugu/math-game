@@ -3,7 +3,7 @@
  * Add new fields here as the game grows (e.g. streaks, lives, xp).
  */
 export class GameState {
-  constructor({ ops = ['+'], range = 10, timerSecs = null, totalQuestions = 10, inputMode = 'type' } = {}) {
+  constructor({ ops = ['+'], range = { min: 0, max: 10 }, timerSecs = null, totalQuestions = 10, inputMode = 'type' } = {}) {
     this.ops = ops;                   // which operations are active
     this.range = range;               // max number in questions
     this.timerSecs = timerSecs;       // null = no timer
