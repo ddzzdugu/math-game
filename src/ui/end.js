@@ -1,6 +1,7 @@
-import { getTier } from '../utils/messages.js';
+import { getTier, getThemedTier } from '../utils/messages.js';
 import { launchEffect } from './effects.js';
 import { saveSession, getHistory } from '../utils/storage.js';
+import { speak } from '../utils/tts.js';
 
 const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
@@ -39,8 +40,9 @@ function historyHTML(sessions) {
 }
 
 export function renderEnd(container, navigate, { state }) {
-  const tier = getTier(state.correct);
-  const isTimedSession = !!state.timerSecs;
+  const tier              = getTier(state.correct);
+  const { theme, quote }  = getThemedTier(state.correct);
+  const isTimedSession    = !!state.timerSecs;
 
   const scoreDisplay = isTimedSession
     ? `${state.correct} correct in ${state.timerSecs}s`
@@ -68,6 +70,13 @@ export function renderEnd(container, navigate, { state }) {
       <p class="end-sub">${tier.sub}</p>
       <div class="end-score">${scoreDisplay}</div>
       <p class="end-accuracy">${subDisplay}</p>
+
+      <div class="themed-quote themed-quote--${theme}">
+        <span class="quote-badge">${theme === 'hp' ? '⚡ Hogwarts' : '⚡ Camp Half-Blood'}</span>
+        <p class="quote-text">${quote}</p>
+        <button class="quote-replay" id="quote-replay" title="Read again">🔊</button>
+      </div>
+
       <div class="end-actions">
         <button class="primary-btn" id="play-again">Play again</button>
         <button class="secondary-btn" id="change-settings">Change settings</button>
@@ -81,6 +90,9 @@ export function renderEnd(container, navigate, { state }) {
   `;
 
   const stopEffect = launchEffect();
+  speak(quote, theme);
+
+  container.querySelector('#quote-replay').addEventListener('click', () => speak(quote, theme));
 
   container.querySelector('#play-again').addEventListener('click', () => {
     stopEffect();

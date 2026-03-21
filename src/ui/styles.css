@@ -236,6 +236,52 @@ body {
 .end-actions { display: flex; gap: var(--gap); }
 .end-actions .primary-btn { flex: 1; }
 
+/* ── Themed Quote ────────────────────────────────────────── */
+.themed-quote {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 1rem 1rem 1rem 1.1rem;
+  margin: 1.25rem 0;
+  text-align: left;
+}
+.themed-quote--hp {
+  background: #f5f0ff;
+  border-left: 4px solid #7F77DD;
+}
+.themed-quote--pj {
+  background: #fff8ec;
+  border-left: 4px solid #f59e0b;
+}
+.quote-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #aaa;
+  display: block;
+  margin-bottom: 6px;
+}
+.quote-text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #444;
+  font-style: italic;
+  margin: 0;
+  padding-right: 2rem;
+}
+.quote-replay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.quote-replay:hover { opacity: 1; }
+
 /* ── Question Animations ─────────────────────────────────── */
 @keyframes bounce-in {
   0%   { transform: scale(1); }
