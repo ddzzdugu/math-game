@@ -28,6 +28,15 @@ function getVoices() {
   });
 }
 
+/** Call once from a user-gesture handler to unlock speech on mobile. */
+export function unlockTTS() {
+  if (!window.speechSynthesis) return;
+  const u = new SpeechSynthesisUtterance('');
+  u.volume = 0;
+  window.speechSynthesis.speak(u);
+  window.speechSynthesis.cancel();
+}
+
 export async function speak(text, theme) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();

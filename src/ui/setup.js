@@ -1,4 +1,5 @@
 import { availableOps } from '../operations/generator.js';
+import { unlockTTS } from '../utils/tts.js';
 
 const voiceSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
@@ -107,6 +108,7 @@ export function renderSetup(container, navigate) {
 
   // Start
   container.querySelector('#start-btn').addEventListener('click', () => {
+    unlockTTS();
     navigate('game', {
       ops: selectedOps,
       range: selectedRange,
