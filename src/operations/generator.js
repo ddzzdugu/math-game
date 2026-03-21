@@ -16,17 +16,18 @@ const generators = {
     return { text: `${a} − ${b}`, answer: a - b };
   },
 
-  '*': ({ max }) => {
-    // cap multipliers at 12 so it stays manageable
+  '*': ({ min, max }) => {
     const cap = Math.min(12, max);
-    const a = randBetween(0, cap), b = randBetween(0, cap);
+    const lo  = Math.min(min, cap);        // respect min, but never exceed cap
+    const a = randBetween(lo, cap + 1), b = randBetween(lo, cap + 1);
     return { text: `${a} × ${b}`, answer: a * b };
   },
 
-  '/': ({ max }) => {
+  '/': ({ min, max }) => {
     const cap = Math.min(12, max);
-    const b = randBetween(1, cap);
-    const answer = randBetween(0, cap);
+    const lo  = Math.min(min, cap);
+    const b      = randBetween(Math.max(lo, 1), cap + 1);   // divisor >= 1
+    const answer = randBetween(lo, cap + 1);
     const a = b * answer;
     return { text: `${a} ÷ ${b}`, answer };
   },
