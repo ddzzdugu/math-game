@@ -229,14 +229,18 @@ export function renderGame(container, navigate, state) {
     qbox.classList.add(isCorrect ? 'correct-bounce' : 'wrong-shake');
 
     const fb = container.querySelector('#feedback');
-    fb.textContent = isCorrect ? randomFrom(CORRECT_MESSAGES) : randomFrom(WRONG_MESSAGES);
+    if (isCorrect) {
+      fb.textContent = randomFrom(CORRECT_MESSAGES);
+    } else {
+      fb.textContent = `${randomFrom(WRONG_MESSAGES)} The answer is ${currentQuestion.answer}.`;
+    }
     fb.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
     if (isCorrect) playCorrect(); else playWrong();
 
     container.querySelector('#sc-correct').textContent = state.correct;
     container.querySelector('#sc-wrong').textContent = state.wrong;
 
-    feedbackTimeout = setTimeout(nextQuestion, useVoice ? 300 : 1100);
+    feedbackTimeout = setTimeout(nextQuestion, useVoice ? (isCorrect ? 300 : 1500) : 1100);
   }
 
   container.querySelector('#submit-btn').addEventListener('click', () => {
