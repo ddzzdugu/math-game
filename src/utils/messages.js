@@ -221,8 +221,22 @@ export const THEME_LABELS = {
 
 export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
+// Shuffled-deck: cycle through all themes before any can repeat.
+let themeDeck = [];
+function nextTheme() {
+  if (!themeDeck.length) {
+    // Refill and shuffle
+    themeDeck = [...THEMES];
+    for (let i = themeDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [themeDeck[i], themeDeck[j]] = [themeDeck[j], themeDeck[i]];
+    }
+  }
+  return themeDeck.pop();
+}
+
 export function getThemedTier(accuracy) {
-  const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  const theme = nextTheme();
   const tier  = THEMED_TIERS[theme].find(t => accuracy >= t.min);
   return { theme, quote: tier.quotes[Math.floor(Math.random() * tier.quotes.length)] };
 }
