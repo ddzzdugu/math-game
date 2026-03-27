@@ -445,8 +445,9 @@ body {
 .home-card:hover  { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.18); }
 .home-card:active { transform: translateY(-1px); }
 
-.home-card--arith { background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-mid) 100%); }
-.home-card--frac  { background: linear-gradient(135deg, var(--teal-dark)   0%, var(--teal-mid)   100%); }
+.home-card--arith  { background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-mid) 100%); }
+.home-card--frac   { background: linear-gradient(135deg, var(--teal-dark)   0%, var(--teal-mid)   100%); }
+.home-card--logic  { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
 
 .hcard-icon    { font-size: 26px; font-weight: 700; width: 54px; text-align: center; flex-shrink: 0; opacity: 0.9; letter-spacing: 1px; }
 .hcard-body    { flex: 1; }
@@ -607,6 +608,75 @@ body {
 /* Button answer states */
 .choice-correct { background: var(--teal-light)  !important; border-color: var(--teal-mid)  !important; color: var(--teal-dark)  !important; }
 .choice-wrong   { background: var(--coral-light) !important; border-color: var(--coral-mid) !important; color: var(--coral-mid)  !important; }
+
+/* ── Logic Game ──────────────────────────────────────────── */
+.logic-question-box { padding: 1.5rem 1.25rem; }
+
+.logic-seq-q {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--purple-dark);
+  text-align: center;
+  padding: 1.25rem 0 0.5rem;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 1px;
+  word-spacing: 4px;
+}
+
+.logic-tf-q {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--purple-dark);
+  text-align: center;
+  padding: 1.25rem 0 0.5rem;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.35;
+}
+
+.logic-ooo-q {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--purple-dark);
+  text-align: center;
+  padding: 1rem 0 0.25rem;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* True / False buttons */
+.tf-choices {
+  display: flex;
+  gap: 12px;
+  margin-top: 1.25rem;
+}
+.choice-btn--tf {
+  flex: 1;
+  height: 72px;
+  font-size: 22px;
+}
+
+/* Odd One Out buttons — flex wrap for 5 items */
+.ooo-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+.choice-btn--ooo {
+  min-width: 72px;
+  height: 60px;
+  font-size: 22px;
+  padding: 0 16px;
+}
 
 /* ── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 420px) {

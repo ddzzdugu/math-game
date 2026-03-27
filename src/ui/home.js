@@ -25,10 +25,20 @@ export function renderHome(container, navigate) {
           </div>
           <div class="hcard-chevron">›</div>
         </button>
+
+        <button class="home-card home-card--logic" id="btn-logic">
+          <div class="hcard-icon">🧩</div>
+          <div class="hcard-body">
+            <div class="hcard-title">Logic</div>
+            <div class="hcard-desc">Sequences, true/false &amp; odd one out</div>
+          </div>
+          <div class="hcard-chevron">›</div>
+        </button>
       </div>
     </div>
   `;
 
   container.querySelector('#btn-arith').addEventListener('click', () => navigate('setup'));
   container.querySelector('#btn-frac').addEventListener('click', () => navigate('fraction-setup'));
+  container.querySelector('#btn-logic').addEventListener('click', () => navigate('logic-setup'));
 }
