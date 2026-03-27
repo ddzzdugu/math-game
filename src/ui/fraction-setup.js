@@ -1,4 +1,6 @@
 export function renderFractionSetup(container, navigate) {
+  let timerSecs = 60;
+
   container.innerHTML = `
     <div class="screen frac-setup-screen">
       <button class="back-btn" id="back-btn">‹ Back</button>
@@ -7,6 +9,14 @@ export function renderFractionSetup(container, navigate) {
         <div class="frac-setup-icon">½</div>
         <h2 class="frac-setup-title">Fractions</h2>
         <p class="frac-setup-sub">Choose what to practice</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Timer</div>
+        <div class="timer-row">
+          <input type="range" min="0" max="180" step="10" value="60" id="timer-val" />
+          <span id="timer-val-out">60s</span>
+        </div>
       </div>
 
       <div class="frac-mode-cards">
@@ -31,7 +41,16 @@ export function renderFractionSetup(container, navigate) {
     </div>
   `;
 
+  const timerInput = container.querySelector('#timer-val');
+  const timerOut   = container.querySelector('#timer-val-out');
+  timerInput.addEventListener('input', () => {
+    timerSecs = +timerInput.value;
+    timerOut.textContent = timerSecs === 0 ? 'Off' : `${timerSecs}s`;
+  });
+
   container.querySelector('#back-btn').addEventListener('click', () => navigate('home'));
-  container.querySelector('#btn-compare').addEventListener('click', () => navigate('fraction-game', { mode: 'compare' }));
-  container.querySelector('#btn-simplify').addEventListener('click', () => navigate('fraction-game', { mode: 'simplify' }));
+  container.querySelector('#btn-compare').addEventListener('click', () =>
+    navigate('fraction-game', { mode: 'compare', timerSecs: timerSecs === 0 ? null : timerSecs }));
+  container.querySelector('#btn-simplify').addEventListener('click', () =>
+    navigate('fraction-game', { mode: 'simplify', timerSecs: timerSecs === 0 ? null : timerSecs }));
 }

@@ -1,7 +1,8 @@
 import { GameState } from '../utils/state.js';
 import { CORRECT_MESSAGES, WRONG_MESSAGES, randomFrom } from '../utils/messages.js';
-import { playCorrect, playWrong, playFinish } from '../utils/sound.js';
+import { playCorrect, playWrong, playFinish, playTick } from '../utils/sound.js';
 import { updateOpStats } from '../utils/storage.js';
+import { Timer } from '../utils/timer.js';
 
 const TOTAL_QUESTIONS = 10;
 const DENOMS = [2, 3, 4, 5, 6, 8, 10, 12];
@@ -47,9 +48,10 @@ function genSimplify() {
   return { bigN: nBase * factor, bigD: dBase * factor, choices, answer };
 }
 
-export function renderFractionGame(container, navigate, mode) {
-  const state = new GameState({ ops: ['frac'], range: { min: 0, max: 12 } });
-  state.totalQuestions = TOTAL_QUESTIONS;
+export function renderFractionGame(container, navigate, mode, timerSecs = null) {
+  const isTimed = !!timerSecs;
+  const state = new GameState({ ops: ['frac'], range: { min: 0, max: 12 }, timerSecs });
+  if (!isTimed) state.totalQuestions = TOTAL_QUESTIONS;
   state.fracMode = mode;
 
   const modeLabel = mode === 'compare' ? 'Compare' : 'Simplify';
@@ -59,9 +61,10 @@ export function renderFractionGame(container, navigate, mode) {
       <div class="scorebar">
         <div class="score-card"><div class="sc-label">Correct</div><div class="sc-val" id="sc-correct">0</div></div>
         <div class="score-card"><div class="sc-label">Wrong</div><div class="sc-val" id="sc-wrong">0</div></div>
-        <div class="score-card"><div class="sc-label">Question</div><div class="sc-val" id="sc-q">1 / ${TOTAL_QUESTIONS}</div></div>
+        <div class="score-card"><div class="sc-label">${isTimed ? 'Done' : 'Question'}</div><div class="sc-val" id="sc-q">${isTimed ? '0' : `1 / ${TOTAL_QUESTIONS}`}</div></div>
       </div>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="timer-display" id="timer-display" style="display:none"></div>
       <button class="stop-btn" id="stop-btn">Stop</button>
       <div class="question-box frac-question-box" id="question-box">
         <div class="frac-mode-badge">${modeLabel}</div>
@@ -77,14 +80,33 @@ export function renderFractionGame(container, navigate, mode) {
   let gameActive = true;
   let feedbackTimeout = null;
   let questionStartTime = null;
+  let sessionTimer = null;
+
+  if (isTimed) {
+    const disp = container.querySelector('#timer-display');
+    disp.style.display = 'block';
+    sessionTimer = new Timer(
+      timerSecs,
+      (t) => {
+        disp.textContent = `⏱ ${t}s`;
+        disp.className = t <= 10 ? 'timer-display urgent' : 'timer-display';
+        container.querySelector('#progress-fill').style.width =
+          `${((timerSecs - t) / timerSecs) * 100}%`;
+        if (t <= 10) playTick();
+      },
+      () => endGame()
+    );
+    sessionTimer.start();
+  }
 
   function endGame() {
     gameActive = false;
     clearTimeout(feedbackTimeout);
+    if (sessionTimer) sessionTimer.stop();
     playFinish();
     navigate('end', {
       state,
-      onPlayAgain: () => navigate('fraction-game', { mode }),
+      onPlayAgain: () => navigate('fraction-game', { mode, timerSecs }),
       onChangeSettings: () => navigate('fraction-setup'),
     });
   }
@@ -93,7 +115,7 @@ export function renderFractionGame(container, navigate, mode) {
 
   function nextQuestion() {
     if (!gameActive) return;
-    if (state.isFinished) { endGame(); return; }
+    if (!isTimed && state.isFinished) { endGame(); return; }
 
     locked = false;
     questionStartTime = Date.now();
@@ -143,8 +165,12 @@ export function renderFractionGame(container, navigate, mode) {
       btn.addEventListener('click', () => handleAnswer(btn.dataset.choice, btn));
     });
 
-    container.querySelector('#sc-q').textContent = `${state.currentQ + 1} / ${TOTAL_QUESTIONS}`;
-    container.querySelector('#progress-fill').style.width = `${(state.currentQ / TOTAL_QUESTIONS) * 100}%`;
+    if (isTimed) {
+      container.querySelector('#sc-q').textContent = state.currentQ;
+    } else {
+      container.querySelector('#sc-q').textContent = `${state.currentQ + 1} / ${TOTAL_QUESTIONS}`;
+      container.querySelector('#progress-fill').style.width = `${(state.currentQ / TOTAL_QUESTIONS) * 100}%`;
+    }
   }
 
   function handleAnswer(choice, btn) {

@@ -14,7 +14,7 @@ export function navigate(screen, data = {}) {
   if (screen === 'setup')          renderSetup(app, navigate);
   if (screen === 'game')           renderGame(app, navigate, new GameState(data));
   if (screen === 'fraction-setup') renderFractionSetup(app, navigate);
-  if (screen === 'fraction-game')  renderFractionGame(app, navigate, data.mode);
+  if (screen === 'fraction-game')  renderFractionGame(app, navigate, data.mode, data.timerSecs ?? null);
   if (screen === 'end')            renderEnd(app, navigate, data);
 }
 
