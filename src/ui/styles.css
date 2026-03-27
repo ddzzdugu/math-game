@@ -318,6 +318,10 @@ body {
   background: #fff8ec;
   border-left: 4px solid #f59e0b;
 }
+.themed-quote--huntrix {
+  background: #f0fff4;
+  border-left: 4px solid #10b981;
+}
 .quote-badge {
   font-size: 10px;
   font-weight: 700;
