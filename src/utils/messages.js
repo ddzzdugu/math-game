@@ -256,7 +256,8 @@ export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
 // Shuffled-deck: cycle through all themes before any can repeat.
 // Persisted in sessionStorage so page reloads don't restart the deck.
-const DECK_KEY = 'mathgame_theme_deck';
+const DECK_KEY       = 'mathgame_theme_deck';
+const LAST_THEME_KEY = 'mathgame_last_theme';
 
 function loadDeck() {
   try { const d = sessionStorage.getItem(DECK_KEY); return d ? JSON.parse(d) : []; }
@@ -275,9 +276,19 @@ function nextTheme() {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
+    // At the deck boundary the last element of the new deck will be popped next.
+    // If it matches the previously shown theme, swap it with a random other slot
+    // so consecutive games never show the same theme twice.
+    let lastTheme;
+    try { lastTheme = sessionStorage.getItem(LAST_THEME_KEY); } catch { lastTheme = null; }
+    if (lastTheme && deck.length > 1 && deck[deck.length - 1] === lastTheme) {
+      const swapIdx = Math.floor(Math.random() * (deck.length - 1));
+      [deck[deck.length - 1], deck[swapIdx]] = [deck[swapIdx], deck[deck.length - 1]];
+    }
   }
   const theme = deck.pop();
   saveDeck(deck);
+  try { sessionStorage.setItem(LAST_THEME_KEY, theme); } catch {}
   return theme;
 }
 
