@@ -207,23 +207,57 @@ export const THEMED_TIERS = {
       "Even the strongest squads have rough days. This is just one round — come back and show them what you've got.",
     ]},
   ],
+  huntrix: [
+    { min: 100, quotes: [
+      "FLAWLESS VICTORY. All systems nominal. The Huntrix mainframe has logged your perfect run — zero errors detected across all sectors.",
+      "100% accuracy confirmed. Mission complete. Hunter Command is upgrading your clearance — you just cracked the top of the leaderboard.",
+      "Target locked, target eliminated — every single one. The grid has never seen a cleaner sweep. You ARE the algorithm.",
+      "Perfect score. The neural net is evolving to match your level. You didn't just beat the mission — you rewrote it.",
+    ]},
+    { min: 80,  quotes: [
+      "High-precision run! Hunter Command is impressed — almost a clean sweep. Fine-tune the calibration and you'll be untouchable.",
+      "Strong signal. Your accuracy rating is climbing fast. A few more cycles and the system won't be able to keep up with you.",
+      "Mission success! Nearly flawless — just a couple of glitches in the data stream. Patch those and you're elite.",
+      "Solid extraction! The grid tracked your every move and you held your ground. One more push and you hit perfect.",
+    ]},
+    { min: 60,  quotes: [
+      "Target acquisition at 60% and above — mission objectives partially met. Recalibrate and re-enter. The grid is beatable.",
+      "Decent run, Hunter. You pushed through the interference. Sharpen your reflexes and the data wall won't stop you next time.",
+      "The system registered your effort. More than half the targets neutralised. Keep scanning, keep hunting — you're getting closer.",
+      "Not bad for a mid-tier run! Hunter Command says: analyse the misses, upgrade your approach, and come back stronger.",
+    ]},
+    { min: 40,  quotes: [
+      "Signal weak but still transmitting. The grid pushed back — but so did you. Reboot, recalibrate, re-engage.",
+      "Partial data recovery. The mission wasn't clean, but you stayed in the fight. That persistence is your best weapon.",
+      "Hunter, the system flagged some errors in your sequence. No shutdown though — you're still online. Go again.",
+      "The grid is tough and it doesn't apologise. Neither should you. Reset and run the mission again — this is how hunters improve.",
+    ]},
+    { min: 0,   quotes: [
+      "System initialising. Every Hunter starts cold — no data, no patterns, no shortcuts. You've just logged your first run. Now learn from it.",
+      "Connection established. The grid didn't go easy on you, and it never does. But you're in the system now — try again.",
+      "First scan complete. The data isn't pretty yet, but the Huntrix network records every attempt. Your next run will be better.",
+      "Hunter online. The mission looked impossible — but you launched anyway. That's the first move every elite Hunter ever made. Go again.",
+    ]},
+  ],
 };
 
-export const THEMES = ['hp', 'pj', 'los', 'tryout', 'squad'];
+export const THEMES = ['hp', 'pj', 'los', 'tryout', 'squad', 'huntrix'];
 
 export const THEME_LABELS = {
-  hp:     '⚡ Hogwarts',
-  pj:     '⚡ Camp Half-Blood',
-  los:    '📖 The Land of Stories',
-  tryout: '📣 The Tryout',
-  squad:  '🌙 Squad',
+  hp:      '⚡ Hogwarts',
+  pj:      '⚡ Camp Half-Blood',
+  los:     '📖 The Land of Stories',
+  tryout:  '📣 The Tryout',
+  squad:   '🌙 Squad',
+  huntrix: '🎯 Huntrix',
 };
 
 export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
 // Shuffled-deck: cycle through all themes before any can repeat.
 // Persisted in sessionStorage so page reloads don't restart the deck.
-const DECK_KEY = 'mathgame_theme_deck';
+const DECK_KEY       = 'mathgame_theme_deck';
+const LAST_THEME_KEY = 'mathgame_last_theme';
 
 function loadDeck() {
   try { const d = sessionStorage.getItem(DECK_KEY); return d ? JSON.parse(d) : []; }
@@ -242,16 +276,33 @@ function nextTheme() {
       const j = Math.floor(Math.random() * (i + 1));
       [deck[i], deck[j]] = [deck[j], deck[i]];
     }
+    // At the deck boundary the last element of the new deck will be popped next.
+    // If it matches the previously shown theme, swap it with a random other slot
+    // so consecutive games never show the same theme twice.
+    let lastTheme;
+    try { lastTheme = sessionStorage.getItem(LAST_THEME_KEY); } catch { lastTheme = null; }
+    if (lastTheme && deck.length > 1 && deck[deck.length - 1] === lastTheme) {
+      const swapIdx = Math.floor(Math.random() * (deck.length - 1));
+      [deck[deck.length - 1], deck[swapIdx]] = [deck[swapIdx], deck[deck.length - 1]];
+    }
   }
   const theme = deck.pop();
   saveDeck(deck);
+  try { sessionStorage.setItem(LAST_THEME_KEY, theme); } catch {}
   return theme;
 }
+
+const LAST_QUOTE_KEY = 'mathgame_last_quote';
 
 export function getThemedTier(accuracy) {
   const theme = nextTheme();
   const tier  = THEMED_TIERS[theme].find(t => accuracy >= t.min);
-  return { theme, quote: tier.quotes[Math.floor(Math.random() * tier.quotes.length)] };
+  let last;
+  try { last = sessionStorage.getItem(LAST_QUOTE_KEY); } catch { last = null; }
+  const pool = tier.quotes.length > 1 ? tier.quotes.filter(q => q !== last) : tier.quotes;
+  const quote = pool[Math.floor(Math.random() * pool.length)];
+  try { sessionStorage.setItem(LAST_QUOTE_KEY, quote); } catch {}
+  return { theme, quote };
 }
 
 export function randomFrom(arr) {
