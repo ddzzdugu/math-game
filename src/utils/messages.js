@@ -222,17 +222,30 @@ export const THEME_LABELS = {
 export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 
 // Shuffled-deck: cycle through all themes before any can repeat.
-let themeDeck = [];
+// Persisted in sessionStorage so page reloads don't restart the deck.
+const DECK_KEY = 'mathgame_theme_deck';
+
+function loadDeck() {
+  try { const d = sessionStorage.getItem(DECK_KEY); return d ? JSON.parse(d) : []; }
+  catch { return []; }
+}
+
+function saveDeck(deck) {
+  try { sessionStorage.setItem(DECK_KEY, JSON.stringify(deck)); } catch {}
+}
+
 function nextTheme() {
-  if (!themeDeck.length) {
-    // Refill and shuffle
-    themeDeck = [...THEMES];
-    for (let i = themeDeck.length - 1; i > 0; i--) {
+  let deck = loadDeck();
+  if (!deck.length) {
+    deck = [...THEMES];
+    for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [themeDeck[i], themeDeck[j]] = [themeDeck[j], themeDeck[i]];
+      [deck[i], deck[j]] = [deck[j], deck[i]];
     }
   }
-  return themeDeck.pop();
+  const theme = deck.pop();
+  saveDeck(deck);
+  return theme;
 }
 
 export function getThemedTier(accuracy) {
