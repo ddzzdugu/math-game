@@ -252,7 +252,7 @@ export const THEME_LABELS = {
   huntrix: '🎯 Huntrix',
 };
 
-export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+export const OP_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷', 'frac': 'Fractions' };
 
 // Shuffled-deck: cycle through all themes before any can repeat.
 // Persisted in sessionStorage so page reloads don't restart the deck.
