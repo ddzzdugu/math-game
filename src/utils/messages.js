@@ -281,10 +281,17 @@ function nextTheme() {
   return theme;
 }
 
+const LAST_QUOTE_KEY = 'mathgame_last_quote';
+
 export function getThemedTier(accuracy) {
   const theme = nextTheme();
   const tier  = THEMED_TIERS[theme].find(t => accuracy >= t.min);
-  return { theme, quote: tier.quotes[Math.floor(Math.random() * tier.quotes.length)] };
+  let last;
+  try { last = sessionStorage.getItem(LAST_QUOTE_KEY); } catch { last = null; }
+  const pool = tier.quotes.length > 1 ? tier.quotes.filter(q => q !== last) : tier.quotes;
+  const quote = pool[Math.floor(Math.random() * pool.length)];
+  try { sessionStorage.setItem(LAST_QUOTE_KEY, quote); } catch {}
+  return { theme, quote };
 }
 
 export function randomFrom(arr) {
