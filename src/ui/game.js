@@ -100,7 +100,14 @@ export function renderGame(container, navigate, state) {
     navigate('end', { state });
   }
 
-  container.querySelector('#stop-btn').addEventListener('click', endGame);
+  container.querySelector('#stop-btn').addEventListener('click', () => {
+    gameActive = false;
+    clearTimeout(feedbackTimeout);
+    stopRecognition();
+    if (sessionTimer) sessionTimer.stop();
+    document.removeEventListener('keydown', onKey);
+    navigate('setup');
+  });
 
   if (isTimedSession) {
     const disp = container.querySelector('#timer-display');

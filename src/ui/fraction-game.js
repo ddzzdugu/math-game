@@ -111,7 +111,12 @@ export function renderFractionGame(container, navigate, mode, timerSecs = null) 
     });
   }
 
-  container.querySelector('#stop-btn').addEventListener('click', endGame);
+  container.querySelector('#stop-btn').addEventListener('click', () => {
+    gameActive = false;
+    clearTimeout(feedbackTimeout);
+    if (sessionTimer) sessionTimer.stop();
+    navigate('fraction-setup');
+  });
 
   function nextQuestion() {
     if (!gameActive) return;
