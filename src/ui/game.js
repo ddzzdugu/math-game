@@ -13,25 +13,6 @@ const WORD_NUMBERS = {
   sixty:60,seventy:70,eighty:80,ninety:90,hundred:100,
 };
 
-function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
-
-function parseFrac(raw) {
-  const parts = raw.trim().split('/');
-  if (parts.length === 2) {
-    const n = parseInt(parts[0].trim(), 10);
-    const d = parseInt(parts[1].trim(), 10);
-    if (!isNaN(n) && !isNaN(d) && d > 0) {
-      const g = gcd(Math.abs(n), d);
-      return { n: n / g, d: d / g };
-    }
-  }
-  const n = parseInt(raw.trim(), 10);
-  if (!isNaN(n)) return { n, d: 1 };
-  return null;
-}
-
-function fmtFrac({ n, d }) { return d === 1 ? `${n}` : `${n}/${d}`; }
-
 function parseSpoken(transcript) {
   const t = transcript.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '');
   // Try direct digit parse first
@@ -79,7 +60,7 @@ export function renderGame(container, navigate, state) {
         <div class="feedback" id="feedback"></div>
 
         <div id="type-input" class="answer-row" style="${useVoice ? 'display:none' : ''}">
-          <input class="answer-input" type="text" inputmode="numeric" id="ans-input" placeholder="?" autocomplete="off" />
+          <input class="answer-input" type="number" id="ans-input" placeholder="?" autocomplete="off" />
           <button class="submit-btn" id="submit-btn">Go!</button>
         </div>
 
@@ -211,21 +192,11 @@ export function renderGame(container, navigate, state) {
     currentQuestion = generateQuestion(state.ops, state.range, getOpWeights(state.ops));
 
     container.querySelector('#q-text').textContent = `${currentQuestion.text} = ?`;
-    const ansInput = container.querySelector('#ans-input');
-    ansInput.value = '';
-    ansInput.inputMode = currentQuestion.isFraction ? 'text' : 'numeric';
-    ansInput.placeholder = currentQuestion.isFraction ? 'e.g. 3/4' : '?';
+    container.querySelector('#ans-input').value = '';
     container.querySelector('#feedback').textContent = '';
     container.querySelector('#feedback').className = 'feedback';
-    if (useVoice) {
-      const isFrac = currentQuestion.isFraction;
-      container.querySelector('#type-input').style.display = isFrac ? '' : 'none';
-      container.querySelector('#voice-input').style.display = isFrac ? 'none' : '';
-      if (!isFrac) { setVoiceLabel('Get ready…'); setTimeout(startRecognition, 150); }
-      else { stopRecognition(); ansInput.focus(); }
-    } else {
-      ansInput.focus();
-    }
+    if (useVoice) { setVoiceLabel('Get ready…'); setTimeout(startRecognition, 150); }
+    else container.querySelector('#ans-input').focus();
 
     // Reset animations
     const qbox = container.querySelector('#question-box');
@@ -244,15 +215,8 @@ export function renderGame(container, navigate, state) {
     if (locked || !gameActive) return;
     locked = true;
 
-    let userAnswer, isCorrect;
-    if (currentQuestion.isFraction) {
-      const parsed = parseFrac(String(rawVal));
-      isCorrect = parsed !== null && parsed.n === currentQuestion.answer.n && parsed.d === currentQuestion.answer.d;
-      userAnswer = parsed ? fmtFrac(parsed) : String(rawVal);
-    } else {
-      userAnswer = parseInt(rawVal, 10);
-      isCorrect = userAnswer === currentQuestion.answer;
-    }
+    const userAnswer = parseInt(rawVal, 10);
+    const isCorrect = userAnswer === currentQuestion.answer;
     const timeTaken = Math.round((Date.now() - questionStartTime) / 1000);
 
     state.recordAnswer({ question: currentQuestion.text, userAnswer, isCorrect, timeTaken });
@@ -268,8 +232,7 @@ export function renderGame(container, navigate, state) {
     if (isCorrect) {
       fb.textContent = randomFrom(CORRECT_MESSAGES);
     } else {
-      const correctDisplay = currentQuestion.isFraction ? fmtFrac(currentQuestion.answer) : currentQuestion.answer;
-      fb.textContent = `${randomFrom(WRONG_MESSAGES)} The answer is ${correctDisplay}.`;
+      fb.textContent = `${randomFrom(WRONG_MESSAGES)} The answer is ${currentQuestion.answer}.`;
     }
     fb.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
     if (isCorrect) playCorrect(); else playWrong();

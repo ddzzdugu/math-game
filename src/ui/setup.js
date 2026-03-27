@@ -22,6 +22,7 @@ export function renderSetup(container, navigate) {
 
   container.innerHTML = `
     <div class="screen setup-screen">
+      <button class="back-btn" id="back-btn">‹ Back</button>
       <h1 class="game-title">Math Adventure</h1>
       <p class="game-subtitle">Choose what to practice</p>
 
@@ -73,6 +74,8 @@ export function renderSetup(container, navigate) {
       <button class="primary-btn" id="start-btn">Start playing! 🚀</button>
     </div>
   `;
+
+  container.querySelector('#back-btn').addEventListener('click', () => navigate('home'));
 
   // Operation toggles
   container.querySelectorAll('[data-op]').forEach(btn => {

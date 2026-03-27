@@ -420,6 +420,194 @@ body {
 .h-acc   { text-align: right; font-weight: 600; color: var(--purple-dark); }
 .h-speed { text-align: right; color: #999; }
 
+/* ── Home Screen ─────────────────────────────────────────── */
+.home-screen { text-align: center; }
+
+.home-header { margin-bottom: 2.5rem; }
+.home-logo   { font-size: 64px; margin-bottom: 8px; }
+.home-title  { font-size: 32px; font-weight: 800; color: var(--purple-dark); letter-spacing: -0.5px; }
+.home-subtitle { font-size: 15px; color: #999; margin-top: 6px; }
+
+.home-cards { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+
+.home-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 22px 20px;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.home-card:hover  { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.18); }
+.home-card:active { transform: translateY(-1px); }
+
+.home-card--arith { background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-mid) 100%); }
+.home-card--frac  { background: linear-gradient(135deg, var(--teal-dark)   0%, var(--teal-mid)   100%); }
+
+.hcard-icon    { font-size: 26px; font-weight: 700; width: 54px; text-align: center; flex-shrink: 0; opacity: 0.9; letter-spacing: 1px; }
+.hcard-body    { flex: 1; }
+.hcard-title   { font-size: 20px; font-weight: 700; }
+.hcard-desc    { font-size: 13px; opacity: 0.82; margin-top: 3px; }
+.hcard-chevron { font-size: 26px; opacity: 0.55; flex-shrink: 0; }
+
+/* ── Back Button (shared) ────────────────────────────────── */
+.back-btn {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--purple-mid);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.25rem;
+}
+.back-btn:hover { color: var(--purple-dark); }
+
+/* ── Fraction Setup Screen ───────────────────────────────── */
+.frac-setup-header { text-align: center; margin-bottom: 2rem; }
+.frac-setup-icon   { font-size: 52px; margin-bottom: 6px; }
+.frac-setup-title  { font-size: 26px; font-weight: 700; color: var(--purple-dark); }
+.frac-setup-sub    { font-size: 14px; color: #999; margin-top: 4px; }
+
+.frac-mode-cards { display: flex; flex-direction: column; gap: 14px; }
+
+.frac-mode-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 18px;
+  border: 2px solid #e0ddf8;
+  border-radius: 16px;
+  cursor: pointer;
+  background: white;
+  color: var(--purple-dark);
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.frac-mode-card:hover {
+  border-color: var(--purple-mid);
+  background: var(--purple-light);
+  transform: translateY(-2px);
+}
+
+.fmcard-icon  { font-size: 20px; font-weight: 700; width: 54px; text-align: center; flex-shrink: 0; color: var(--purple-mid); }
+.fmcard-body  { flex: 1; }
+.fmcard-title { font-size: 18px; font-weight: 700; }
+.fmcard-desc  { font-size: 13px; color: #888; margin-top: 3px; }
+
+/* ── Fraction Game ───────────────────────────────────────── */
+.frac-question-box { padding: 1.5rem 1.25rem; }
+
+.frac-mode-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bbb;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+/* Stacked fraction visuals */
+.frac-v {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+  font-weight: 700;
+}
+.fv-n {
+  border-bottom: 2.5px solid currentColor;
+  padding: 0 5px 3px;
+}
+.fv-d { padding: 3px 5px 0; }
+.frac-whole { vertical-align: middle; font-weight: 700; }
+
+/* Compare question */
+.compare-q {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  font-size: 48px;
+  color: var(--purple-dark);
+  padding: 1rem 0;
+  min-height: 110px;
+}
+.compare-box {
+  width: 52px;
+  height: 52px;
+  border: 2.5px solid #d4d0f5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #ccc;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+/* Compare choices */
+.compare-choices {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+/* Simplify question */
+.simplify-q {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+  padding: 1rem 0;
+}
+.simplify-frac { font-size: 52px; color: var(--purple-dark); }
+
+/* Simplify choices */
+.simplify-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 1.25rem;
+}
+
+/* Choice buttons */
+.choice-btn {
+  border: 2.5px solid #d4d0f5;
+  border-radius: 14px;
+  cursor: pointer;
+  background: white;
+  color: var(--purple-dark);
+  font-weight: 700;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.choice-btn:hover { border-color: var(--purple-mid); background: var(--purple-light); transform: scale(1.04); }
+.choice-btn:disabled { cursor: default; }
+
+.choice-btn--cmp  { width: 88px; height: 68px; font-size: 30px; }
+.choice-btn--simp {
+  padding: 16px 12px;
+  font-size: 28px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Button answer states */
+.choice-correct { background: var(--teal-light)  !important; border-color: var(--teal-mid)  !important; color: var(--teal-dark)  !important; }
+.choice-wrong   { background: var(--coral-light) !important; border-color: var(--coral-mid) !important; color: var(--coral-mid)  !important; }
+
 /* ── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 420px) {
   body { padding: 0.75rem 0.5rem; }

@@ -37,7 +37,7 @@ function historyHTML(sessions) {
     ${rows}`;
 }
 
-export function renderEnd(container, navigate, { state }) {
+export function renderEnd(container, navigate, { state, onPlayAgain, onChangeSettings }) {
   const tier              = getTier(state.correct);
   const { theme, quote }  = getThemedTier(state.accuracy);
   const isTimedSession    = !!state.timerSecs;
@@ -94,11 +94,13 @@ export function renderEnd(container, navigate, { state }) {
 
   container.querySelector('#play-again').addEventListener('click', () => {
     stopEffect();
-    navigate('game', { ops: state.ops, range: state.range, timerSecs: state.timerSecs, inputMode: state.inputMode });
+    if (onPlayAgain) onPlayAgain();
+    else navigate('game', { ops: state.ops, range: state.range, timerSecs: state.timerSecs, inputMode: state.inputMode });
   });
 
   container.querySelector('#change-settings').addEventListener('click', () => {
     stopEffect();
-    navigate('setup');
+    if (onChangeSettings) onChangeSettings();
+    else navigate('setup');
   });
 }

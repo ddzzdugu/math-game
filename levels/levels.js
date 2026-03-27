@@ -53,12 +53,4 @@ export const LEVELS = [
     timerSecs: 20,
     description: 'Mixed practice — the full workout.',
   },
-  {
-    id: 'fractions',
-    label: 'Fractions',
-    ops: ['frac'],
-    range: 12,
-    timerSecs: null,
-    description: 'Simplify fractions and add/subtract with different denominators.',
-  },
 ];
